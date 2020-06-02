@@ -1,0 +1,47 @@
+//writen by sunbeat
+//2015-12-11
+//decompile the PDK exe back to perl script
+
+
+var BPNAME
+var BPDECODE
+var MEMSTART
+var MEMEND
+var size
+var plname
+var filename
+var scriptaddr 
+findmem "script",401000  //use script as the key word to search in memory
+mov scriptaddr,$RESULT
+eval "push 0x{scriptaddr}"
+findcmd 401000,$RESULT   //find in instruction , where to call "script" memory address
+mov BPNAME,$RESULT
+mov BPDECODE,$RESULT+F
+bp BPNAME
+erun  //break in EAX is the name of perl script
+bc BPNAME
+eval [eax]
+mov plname, $RESULT
+bp BPDECODE
+erun
+bc BPDECODE
+mov MEMSTART,eax  //eax stores the perl script's dump begin address
+
+findmem #00#,eax  //from EAX as begin , until find 0x0 as the end
+mov MEMEND,$RESULT
+sub MEMEND,MEMSTART
+mov size,MEMEND
+eval "{plname}"
+mov filename,$RESULT
+DM MEMSTART,size,filename
+
+itoa $RESULT,10.
+mov size,$RESULT
+
+eval "file:{filename} was writen {size} bytes"
+msg $RESULT
+reset  //ctrl+f2 , reload programe
+ret
+
+
+
